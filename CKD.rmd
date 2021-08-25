@@ -1,0 +1,741 @@
+---
+title: "Chronic Kidney Disease"
+output:
+  pdf_document: default
+  html_notebook: default
+  word_document: default
+---
+
+__*Chronic Kidney Disease (CKD)*__ is one of the huge risk factors, that can stay undetected for a long period of time. This is due to the fact, that in the first stages of the disease, no symptoms might occur. Since undetected chronic kidney disease will eventually lead to a total failure of the kidneys, it is necessary to slow the progression of the disease early on. Therefore an early diagnosis is an important factor in helping affected people.
+
+In this paper we have proposed solutions using Machine Learning Algorithms to detect CKD. The data set used for evaluation consists of
+400 individuals and suffers from noisy and missing data. We
+need a robust classifier that can deal with these issues. Hence,
+we evaluated solutions with three different classifiers: *K-Nearest Neighbour*, *Naive Bayes* and *K-Means*.
+
+The major sections in this paper are:  
+1.  Collect data  
+2.  Clean data  
+3.  Analyse data  
+4.  Report 
+
+# 1. Collect Data
+Data collection is the process of gathering and measuring information on targeted variables in an established systematic fashion, which then enables one to answer relevant questions and evaluate outcomes.
+
+The data used in this paper is collected from the UCI Machine Learning Repository. The original source of the Chronic_Kidney_Disease Data Set was Dr. P. Soundarapandian, M. D., D.M (Senior Consultant Nephrologist), Apollo Hospitals, Managiri, Madurai Main Road, Karaikudi, Tamil Nadu, India.
+
+```{r ReadData}
+## Read data from the directory as a data frame, a data structure
+## which can contain different data types in different columns
+ckd_raw <- read.csv(file = "chronic_kidney_disease.arff",
+                    header = FALSE, sep = ",", dec = ".",
+                    na.strings = "?", strip.white = TRUE,
+                    blank.lines.skip = TRUE,
+                    comment.char = "@")
+
+## Assign names to the vectors (columns) in the data frame
+names(ckd_raw) <- c("age","bp","sg","al","su","rbc","pc","pcc","ba",
+                        "bgr","bu","sc","sod","pot","hemo","pcv","wc","rc",
+                        "htn","dm","cad","appet","pe","ane","class")
+```
+
+# 2. Clean Data
+Data cleansing is the process of detecting and correcting (or removing) corrupt or inaccurate records from a record set, table, or database and refers to identifying incomplete, incorrect, inaccurate or irrelevant parts of the data and then replacing, modifying, or deleting the dirty or coarse data using data wrangling tools, or as batch processing through scripting. 
+
+The process of data cleaning can be divided into three parts:  
+1. Exploring raw data  
+2. Tidying data  
+3. Preparing data for analysis  
+
+## 2.1 Exploring Raw Data
+In any process involving data, the first goal should always be understanding the data, i.e. the dimensionality and structure of it.
+
+```{r DimensionOfData}
+## Determine the number of rows and columns present in the data frame
+dim(ckd_raw)
+```
+
+```{r StructureOfData}
+## Determine the structure of the data frame
+str(ckd_raw)
+```
+
+We observe that even though the some columns have same type of data, R has assigned it different data types and lot of data is missing. We have addressed these issues in the next section.
+
+## 2.2 Tidying Data
+The process of tidying data involves the steps which can be summarized as given below:
+
+1. Fixing up formats
+2. Correcting erroneous values
+3. Standardizing categories
+4. Filling in missing values
+
+### 2.2.1. Fixing up Formats
+Often when data is saved or translated from one format to another, some data may not be translated correctly. A typical job when it comes to cleaning data is correcting these types of issues.
+
+```{r ChangeDataFormatToNumeric}
+## Convert the data type of columns from integer to numerical
+AGE <- as.numeric(as.character(ckd_raw$age))
+BP <- as.numeric(as.character(ckd_raw$bp))
+BGR <- as.numeric(as.character(ckd_raw$bgr))
+PCV <- as.numeric(as.character(ckd_raw$pcv))
+WC <- as.numeric(as.character(ckd_raw$wc))
+
+## Replace the column in the data frame with the new vector
+ckd_raw$age <- AGE
+ckd_raw$bp <- BP
+ckd_raw$bgr <- BGR
+ckd_raw$pcv <- PCV
+ckd_raw$wc <- WC
+```
+
+```{r ChangeDataFormatToFactor}
+## Convert the data type of columns from integer to factor
+SG <- as.factor(ckd_raw$sg)
+AL <- as.factor(ckd_raw$al)
+SU <- as.factor(ckd_raw$su)
+
+## Replace the column in the data frame with the new vector
+ckd_raw$sg <- SG
+ckd_raw$al <- AL
+ckd_raw$su <- SU
+```
+
+### 2.2.2 Correcting Erroneous Values
+Now that we have corrected the format of all the columns present in the data frame, we will be checking the data for -  spelling mistakes, erroneous values, etc and standardize them.
+
+```{r CorrectErroneousValue}
+## Check the columns for erroneous values
+```
+
+AGE:
+
+```{r Age}
+## Age
+table(ckd_raw$age)
+```
+
+BP:
+
+```{r Bp}
+## BP
+table(ckd_raw$bp)
+```
+
+SG:
+
+```{r Sg}
+## SG
+table(ckd_raw$sg)
+```
+
+AL:
+
+```{r Al}
+## AL
+table(ckd_raw$al)
+```
+
+SU:
+
+```{r Su}
+## SU
+table(ckd_raw$su)
+```
+
+RBC:
+
+```{r Rbc}
+## RBC
+table(ckd_raw$rbc)
+```
+
+PC:
+
+```{r Pc}
+## PC
+table(ckd_raw$pc)
+```
+
+PCC:
+
+```{r Pcc}
+## PCC
+table(ckd_raw$pcc)
+```
+
+BA:
+
+```{r Ba}
+## BA
+table(ckd_raw$ba)
+```
+
+BGR:
+
+```{r Bgr}
+## BGR
+table(ckd_raw$bgr)
+```
+
+BU:
+
+```{r Bu}
+## BU
+table(ckd_raw$bu)
+```
+
+SC:
+
+```{r Sc}
+## SC
+table(ckd_raw$sc)
+```
+
+SOD:
+
+```{r Sod}
+## SOD
+table(ckd_raw$sod)
+```
+
+POT:
+
+```{r Pot}
+## POT
+table(ckd_raw$pot)
+```
+
+HEMO:
+
+```{r Hemo}
+## HEMO
+table(ckd_raw$hemo)
+```
+
+PCV:
+
+```{r Pcv}
+## PCV
+table(ckd_raw$pcv)
+```
+
+WC:
+
+```{r Wc}
+## WC
+table(ckd_raw$wc)
+```
+
+RC:
+
+```{r Rc}
+## RC
+table(ckd_raw$rc)
+```
+
+HTN:
+
+```{r Htn}
+## HTN
+table(ckd_raw$htn)
+```
+
+DM:
+
+```{r Dm}
+## DM
+table(ckd_raw$dm)
+```
+
+CAD:
+
+```{r Cad}
+## CAD
+table(ckd_raw$cad)
+```
+
+APPET:
+
+```{r Appet}
+## APPET
+table(ckd_raw$appet)
+```
+
+PE:
+
+```{r Pe}
+## PE
+table(ckd_raw$pe)
+```
+
+ANE:
+
+```{r Ane}
+## ANE
+table(ckd_raw$ane)
+```
+
+CLASS:
+
+```{r Class}
+## CLASS
+table(ckd_raw$class)
+```
+
+There are no erroneous or misspelled values, but there are lots of missing values which we have addressed in the next section.
+
+### 2.2.3 Filling in Missing Values
+It is quite common for some values to be missing from data sets. This typically means that a piece of information was simply not collected. *Rubin (1976)* differentiated between three types of missigness mechanisms:
+
+1. __Missing completely at random (MCAR)__: When cases with missing values can be thought of as a random sample of all the cases.
+
+2. __Missing at random (MAR)__: When conditioned on all the available data, any remaining missingness is completely random; i.e. it does not depend on some missing variables.
+3. __Missing not at random (MNAR)__: When data is neither MCAR nor MAR and this is difficult to handle because it requires strong assumptions about the patterns of missingness.
+
+Missing data in general is one of the trickier issues that is dealt with when cleaning data. Broadly, there are two solutions:
+
+1. Deleting/Ignoring rows with missing values
+2. Filling in the Values
+
+#### 2.2.3.1 Deleting/Ignoring Rows with Missing Values
+The simplest solution available is to delete all cases for which a value is missing. This method is called Complete Case Analysis (CC). There are some issues which pops up when CC is implemented on data sets.
+
+The first is that this approach only makes sense if the number of rows with missing data is relatively small compared (say 10%) to the data set.
+
+The second issue is that in order to delete the rows containing missing data, one needs to be confident that the rows to be deleted do not contain information that is not contained in other rows. 
+
+#### 2.2.3.2	Filling in the Values
+The second broad option for dealing with missing data is to fill the missing values with a value. This method is known as Multiple Imputation (MI) which simulates multiple values to impute (fill-in) each missing value, then analyses each imputed data set separately and finally pools the results together.
+
+Two general approaches for imputing multivariate data have emerged: *Joint Modeling (JM)* and *Fully Conditional Specification (FCS)*, also known as *Multivariate Imputation by Chained Equations (MICE)*.
+
+In order to decide which method to use for imputing missing data, we looked into the summary of the data available.
+
+```{r MissingDataPerCent}
+## Counting incomplete cases, (rows of a data frame where one or more columns contain NA)
+missing_data = sum(!complete.cases(ckd_raw))
+
+## Total number of rows
+total_data = dim(ckd_raw)[1]
+
+## Percentage of data missing
+missing_data_percent = (missing_data/total_data) * 100
+print(missing_data_percent)
+print("per cent of rows have one or more columns containing 'NA' value.")
+```
+
+We observed that, while Complete Case Analysis may be easy to implement, it relies upon stronger missing data assumptions and it can result in biased estimates and a reduction in power. 
+
+Single imputation procedures, such as mean imputation, are an improvement but do not account for the uncertainty in the imputations; once the imputation is completed, analysis proceeds as if the imputed values were the known, true values rather than imputed. This will lead to overly precise results and the potential for incorrect conclusions. 
+
+Multiple imputation has a number of advantages over these other missing data approaches. Multiple imputation involves filling in the missing values multiple times, creating multiple complete data sets. The missing values are imputed based on the observed values for a given individual and the relations observed in the data for other participants, assuming the observed variables are included in the imputation model. Because multiple imputation involves creating multiple predictions for each missing value, the analysis of multiple imputed data takes into account the uncertainty in the imputations and yield accurate standard errors. 
+
+MICE is one such package which operates under the assumption that given the variables used in the imputation procedure, the missing data are Missing At Random (MAR), which means that the probability that a value is missing depends only on observed values and not on unobserved values. Implementing MICE when data are not MAR could result in biased estimates. So, we again checked the structure of the data.
+
+```{r Summary}
+summary(ckd_raw)
+```
+
+We observed that the values are MAR and MICE can be implemented to impute the missing values.
+
+In the MICE procedure, a series of regression models are run whereby each variable with missing data is modeled conditionally upon the other variables in the data. It imputes each missing value with a plausible value (simulates a value to fill-in the missing one) until all missing values are imputed and data set is completed, repeats the process for multiple times, say m times and stores all the m complete(d)/imputed data sets. It also allows each variable to be modeled according to its distribution, with, for example, binary variables modeled using logistic regression and continuous variables modeled using linear regression.
+
+The mice package distinguishes between four types of variables:  
+1.  Numeric  
+2.  Binary (Factor with 2 Levels)  
+3.  Unordered (Factor with more than 2 Levels), and  
+4.  Ordered (Ordered Factor with more than 2 Levels). 
+
+Each type has a default imputation method, which are mentioned below.
+
+__Predictive Mean Matching (pmm)__: It is the default method of mice() for imputation of continuous incomplete variables. For each missing value, pmm finds a set of observed values with the closest predicted mean as the missing one and imputes the missing values by a random draw from that set. Its main virtues are that imputations are restricted to the observed values and that it can preserve non-linear relations even if the structural part of the imputation model is wrong.
+
+__Ploytomous Regression (ployreg)__: It is a method of mice() for imputing missing data in factor or categorical variable with more than two level using Bayesian Polytomous Regression Model.
+
+__Logistic Regression (logreg)__: It is a method of mice() for imputing missing data in factor or categorical variable with two level using Logistic Regression.
+
+```{r ImputeMissingData}
+## Install the package
+#install.packages("mice")
+
+## Call the package
+library(mice)
+
+## Function mice() in mice package is a Markov Chain Monte Carlo (MCMC) method that uses
+## correlation structure of the data and imputes missing values for each incomplete
+## variable m times by regression of incomplete variables on the other variables
+## iteratively.
+ckd_imp <- mice(ckd_raw, method = c("pmm", "pmm", "polyreg", "polyreg", 
+                                    "polyreg", "logreg", "logreg", "logreg", "logreg", "pmm", "pmm", "pmm", 
+                                    "pmm", "pmm", "pmm", "pmm", "pmm", "pmm", "logreg", "logreg", 
+                                    "logreg", "logreg", "logreg", "logreg", ""), m = 3)
+```
+
+Predictor Matrix shows the variables used by MICE package to impute data.
+
+```{r PredictorMatrix}
+ckd_imp#pred
+```
+
+We used the complete() function which extracts imputed data sets and returns the completed data as a data frame to generate the complete set of data.
+
+```{r CompleteData}
+ckd_cleansed <- complete(ckd_imp,1)
+
+```
+
+## 2.3 Preparing Data for Analysis
+Variable selection is an important aspect of model building as it helps in building predictive models free from correlated variables, biases and unwanted noise.
+
+As a first step of performing variable selection, we converted the data type of all the columns to numeric.
+
+```{r ChangeDataFormatToNum}
+## Create a new data frame
+ckd_cleansed_num <- ckd_cleansed
+
+## Change the datatype of columns from factor to numerical.
+SG <- as.numeric(as.character(ckd_cleansed_num$sg))
+AL <- as.numeric(as.character(ckd_cleansed_num$al))
+SU <- as.numeric(as.character(ckd_cleansed_num$su))
+ckd_cleansed_num$sg <- SG
+ckd_cleansed_num$al <- AL
+ckd_cleansed_num$su <- SU
+levels(ckd_cleansed_num$rbc) <- c("0", "1")
+levels(ckd_cleansed_num$pc) <- c("0", "1")
+levels(ckd_cleansed_num$pcc) <- c("0", "1")
+levels(ckd_cleansed_num$ba) <- c("0", "1")
+levels(ckd_cleansed_num$htn) <- c("0", "1")
+levels(ckd_cleansed_num$dm) <- c("0", "1")
+levels(ckd_cleansed_num$cad) <- c("0", "1")
+levels(ckd_cleansed_num$appet) <- c("0", "1")
+levels(ckd_cleansed_num$pe) <- c("0", "1")
+levels(ckd_cleansed_num$ane) <- c("0", "1")
+levels(ckd_cleansed_num$class) <- c("0", "1")
+RBC <- as.numeric(as.character(ckd_cleansed_num$rbc))
+PC <- as.numeric(as.character(ckd_cleansed_num$pc))
+PCC <- as.numeric(as.character(ckd_cleansed_num$pcc))
+BA <- as.numeric(as.character(ckd_cleansed_num$ba))
+HTN <- as.numeric(as.character(ckd_cleansed_num$htn))
+DM <- as.numeric(as.character(ckd_cleansed_num$dm))
+CAD <- as.numeric(as.character(ckd_cleansed_num$cad))
+APPET <- as.numeric(as.character(ckd_cleansed_num$appet))
+PE <- as.numeric(as.character(ckd_cleansed_num$pe))
+ANE <- as.numeric(as.character(ckd_cleansed_num$ane))
+CLASS <- as.numeric(as.character(ckd_cleansed_num$class))
+ckd_cleansed_num$rbc <- RBC
+ckd_cleansed_num$pc <- PC
+ckd_cleansed_num$pcc <- PCC
+ckd_cleansed_num$ba <- BA
+ckd_cleansed_num$htn <- HTN
+ckd_cleansed_num$dm <- DM
+ckd_cleansed_num$cad <- CAD
+ckd_cleansed_num$appet <- APPET
+ckd_cleansed_num$pe <- PE
+ckd_cleansed_num$ane <- ANE
+ckd_cleansed_num$class <- CLASS
+```
+
+Once the data type got converted successfully, we used Boruta package to perform variable or feature selection. 
+
+Boruta is a feature selection algorithm which works as a wrapper algorithm around Random Forest.
+
+Firstly, it adds randomness to the given data set by creating shuffled copies of all features (which are called Shadow Features). Then, it trains a random forest classifier on the extended data set and applies a feature importance measure (the default is Mean Decrease Accuracy) to evaluate the importance of each feature where higher means more important.
+
+At every iteration, it checks whether a real feature has a higher importance than the best of its shadow features (i.e. whether the feature has a higher Z score than the maximum Z score of its shadow features) and constantly removes features which are deemed highly unimportant.
+
+Finally, the algorithm stops either when all features gets confirmed or rejected or it reaches a specified limit of random forest runs.
+
+Boruta finds all features which are either strongly or weakly relevant to the decision variable. This makes it well suited for bio-medical applications where one might be interested to determine which human genes (features) are connected in some way to a particular medical condition (target variable).
+
+```{r FeatureSelectionTrain}
+## Install the package
+##install.packages("Boruta")
+
+## Call the package
+library(Boruta)
+
+## Set Pseudo Random Number Generator
+set.seed(1234)
+
+## Implement Boruta
+ckd_boruta_train <- Boruta(class ~ ., data = ckd_cleansed_num, doTrace = 1)
+
+## check the performance of Boruta
+print(ckd_boruta_train)
+```
+
+Boruta gives a crystal clear call on the significance of variables in a data set. In this case, out of 24 attributes, 0 of them are rejected, 22 are confirmed and 2 are designated as tentative. Tentative attributes have importance so close to their best shadow attributes that Boruta is not able to make a decision with the desired confidence in default number of random forest runs.
+
+Using the TentativeRoughFix() method, we checked whether the tentative attributes will be classified as confirmed or rejected by comparing the median Z score of the attributes with the median Z score of the best shadow attribute.
+
+```{r TentativeAttributeCheck}
+## Check Tentative Attributes using Boruta
+ckd_boruta_final <- TentativeRoughFix(ckd_boruta_train)
+
+## Check the performance of Boruta
+print(ckd_boruta_final)
+```
+
+Using the getSelectedAttributes() method we obtained the features that are deemed important by Boruta for decision making.
+
+```{r FeatureSelectionFinal}
+getSelectedAttributes(ckd_boruta_final, withTentative = F)
+```
+
+The Boruta package suggested that all the attributes present in the data are relevant for data analysis and hence, we proceeded to analyse data using all 24 attributes.
+
+# 3. Analyse Data
+We used the below mentioned three Machine Learning algorithms to classify the data.  
+1. K-Nearest Neighbor Classifier  
+2. Naive Bayes Classifier  
+3. K-Means Clustering  
+
+## 3.1 K Nearest Neighbor Classifier
+In pattern recognition, the k-Nearest Neighbors algorithm (or k-NN for short) is a non-parametric method used for classification. It is a type of instance-based learning, or lazy learning, where the function is only approximated locally and all computation is deferred until classification. The input consists of the k closest training examples in the feature space. The output is a class membership. An object is classified by a majority vote of its neighbors, with the object being assigned to the class most common among its k nearest neighbors (k is a positive integer, typically small). If k = 1, then the object is simply assigned to the class of that single nearest neighbor.
+
+### 3.1.1 Algorithm:
+The training examples are vectors in a multidimensional feature space, each with a class label. In the training phase of the algorithm, the feature vectors and class labels of the training samples are stored.
+
+In the classification phase, k is a user-defined constant, and an unlabeled vector (a query or test point) is classified by assigning the label which is most frequent among the k training samples nearest to that query point.
+
+A commonly used distance metric for continuous variables is Euclidean Distance. For discrete variables, such as for text classification, another metric can be used, such as the overlap metric (or Hamming Distance).
+
+### 3.1.2 Pros
+The algorithm is highly unbiased in nature and makes no prior assumption of the underlying data. It is also very simple and effective and easy to implement.
+
+### 3.1.3 Cons
+The training process is really fast as the data is stored verbatim (hence lazy learner) but the prediction time is pretty high with useful insights missing at times. Therefore, building this algorithm requires time to be invested in data preparation (especially treating the missing data and categorical features) to obtain a robust model.
+
+Distance usually relates to all the attributes and assumes all of them have the same effects on distance. The similarity metrics do not consider the relation of attributes which result in inaccurate distance and then impact on classification precision. Wrong classification due to presence of many irrelevant attributes is often termed as the curse of dimensionality and can be solved by performing feature selection beforehand.
+
+Majority voting is used to classify data and this becomes a major drawback when the class distribution is skewed. That is, examples of a more frequent class tend to dominate the prediction of the new example, because they tend to be common among the K-Nearest Neighbors due to their large number. One way to overcome this problem is to weight the classification, taking into account the distance from the test point to each of its k nearest neighbors. The class (or value, in regression problems) of each of the k nearest points is multiplied by a weight proportional to the inverse of the distance from that point to the test point. Another way to overcome skew is by abstraction in data representation. For example, in a Self-organizing Map (SOM), each node is a representative (a center) of a cluster of similar points, regardless of their density in the original training data. K-NN can then be applied to the SOM.
+
+### 3.1.4 Case Study
+In this section we have applied K-Nearest Neighbor Classifier Algorithm on the completed set of Chronic Kidney Disease data that we obtained after imputing missing values.
+
+```{r KNNCaseStudy}
+## Create a new data frame
+ckd_knn <- ckd_cleansed_num
+
+## Install the package 
+#install.packages("class")
+
+## Call the package
+library(class)
+
+## Set Pseudo Random Number Generator
+set.seed(1234)
+
+## Create training and test data set
+ind_knn <- sample(2, nrow(ckd_knn), replace=TRUE, prob=c(0.67, 0.33))
+ckd_knn_train <- ckd_knn[ind_knn == 1, 1:24]
+ckd_knn_test <- ckd_knn[ind_knn == 2, 1:24]
+ckd_knn_train_labels <- ckd_knn[ind_knn == 1, 25]
+ckd_knn_test_labels <- ckd_knn[ind_knn == 2, 25]
+```
+
+We used the training and test data set to create and test model.
+
+```{r KNN}
+## Design the model
+ckd_knn_pred <- knn(train = ckd_knn_train, test = ckd_knn_test, cl = ckd_knn_train_labels, k=20)
+```
+
+Using the CrossTable() method, We have created a Confusion Matrix for our model.
+
+```{r KNNConfusionMatrix}
+## Install the package
+#install.packages("gmodels")
+
+## Call the package
+library(gmodels)
+
+## Draw Confusion Matrix
+CrossTable(x = ckd_knn_test_labels, y = ckd_knn_pred, prop.chisq = FALSE)
+## Actual Values - ckd_knn_test_labels
+## Predicted Values - ckd_knn_pred
+```
+
+## 3.2 Naive Bayes Classifier
+In machine learning, Naive Bayes classifiers are a family of simple probabilistic classifiers based on applying Bayes' theorem with strong (naive) independence assumptions between the features.
+
+__Bayes Theorem__: Bayes' theorem describes the probability of an event, based on prior knowledge of conditions that might be related to the event. For example, if cancer is related to age, then, using Bayes' theorem, a person's age can be used to more accurately assess the probability that they have cancer, compared to the assessment of the probability of cancer made without knowledge of the person's age.
+
+Bayes' theorem can be stated mathematically as the following equation: 
+P(h|d) = (P(d|h) * P(h)) / P(d)
+
+Where, P(h|d) is the probability of hypothesis h given the data d. This is called the posterior probability. P(d|h) is the probability of data d given that the hypothesis h was true. P(h) is the probability of hypothesis h being true (regardless of the data). This is called the prior probability of h. P(d) is the probability of the data (regardless of the hypothesis).
+
+After calculating the posterior probability for a number of different hypotheses, we can select the hypothesis with the highest probability. This is the maximum probable hypothesis and may formally be called the maximum a posteriori (MAP) hypothesis.
+
+This can be written as: 
+
+MAP(h) = max((P(d|h) * P(h)) / P(d))
+
+The P(d) is a normalizing term which allows us to calculate the probability.
+
+Naive Bayes is a simple technique for constructing classifiers, models that assign class labels to problem instances, represented as vectors of feature values, where the class labels are drawn from some finite set. It is not a single algorithm for training such classifiers, but a family of algorithms based on a common principle. All naive Bayes classifiers assume that the value of a particular feature is independent of the value of any other feature, given the class variable. For example, a fruit may be considered to be an apple if it is red, round, and about 10 cm in diameter. A Naive Bayes Classifier considers each of these features to contribute independently to the probability that this fruit is an apple, regardless of any possible correlations between the color, roundness, and diameter features.
+
+### 3.2.1 Algorithm
+Abstractly, Naive Bayes is a conditional probability model. Given a problem instance to be classified, represented 
+
+X = (x~1~, ...., x~n~)
+
+by a vector representing some n features (independent variables), it assigns to this instance probabilities 
+
+P(C~k~|x~1~, ..., x~n~)
+
+for each of k possible outcomes or classes C~k~.
+
+The problem with the above formulation is that if the number of features n is large or if a feature can take on a large number of values, then basing such a model on probability tables is infeasible. We therefore reformulate the model to make it more tractable. Using Bayes' theorem, the conditional probability can be decomposed as
+
+P(C~k~|X) = P(C~k~).P(X|C~k~)/P(X)
+
+In plain English, using Bayesian probability terminology, the above equation can be written as,
+
+Posterior = (Prior * Likelihood)/evidence
+
+In practice, there is interest only in the numerator of that fraction, because the denominator does not depend on C and the values of the features F are given, so that the denominator is effectively constant. The numerator is equivalent to the joint probability model,
+
+P(C~k~, x~1~, ...., x~n~)
+
+which can be rewritten as follows, using the chain rule for repeated applications of the definition of conditional probability:
+
+![](figures\\nb1.png)
+
+Now the "naive" conditional independence assumptions come into play: assume that each feature F~i~ is conditionally independent of every other feature, F~j~ for j != i, given the category, C. This means that
+
+![](figures\\nb2.png)
+
+Thus, the joint model can be expressed as,
+
+![](figures\\nb3.png)
+
+This means that under the above independence assumptions, the conditional distribution over the class variable, C is:
+
+![](figures\\nb4.png)
+
+where the evidence Z = p(x) is a scaling factor dependent only on x~1~,....x~n~, that is, a constant if the values of the feature variables are known.
+
+The Naive Bayes Classifier combines this model with a decision rule. One common rule is to pick the hypothesis that is most probable; this is known as the Maximum a Posteriori or MAP decision rule. The corresponding classifier, a Bayes Classifier, is the function that assigns a class label y^ =  C~k~ for some k as follows:
+
+![](figures\\nb5.png)
+
+### 3.2.2 Pros
+If the Naive Bayes conditional independence assumption actually holds, a Naive Bayes classifier will converge quicker than discriminative models like logistic regression, so you need less training data. And even if the Naive Bayes assumption doesn't hold, a Naive Bayes classifier still often does a great job in practice. A good bet for something which is fast, easy and performs pretty well.
+
+### 3.3.3 Cons
+Its main disadvantage is that it can't learn interactions between features. E.g.: It can't learn that although one loves movies with Brad Pitt and Tom Cruise, one hates movies where they're together.
+
+If categorical variable has a category (test data set), which was not observed in training data set, then model will assign a zero probability and will be unable to make a prediction.
+
+Another limitation of Naive Bayes is the assumption of independent predictors. In real life it is almost impossible that we get a set of predictors which are completely independent.
+
+### 3.3.4 Case Study
+In this section we have applied Naive Bayes Classifier Algorithm on the completed set of Chronic Kidney Disease data that we obtained after imputing missing values.
+
+```{r NBCaseStudy}
+## Create a new data frame
+ckd_nb <- ckd_raw
+
+## Install the package
+#install.packages("e1071")
+
+## Call the package
+library(e1071)
+
+## Set Pseudo Random Number Generator
+set.seed(1234)
+
+## Create training and test data set
+ind_knn <- sample(2, nrow(ckd_knn), replace=TRUE, prob=c(0.67, 0.33))
+ckd_nb_train <- ckd_nb[ind_knn == 1, 1:25]
+ckd_nb_test <- ckd_nb[ind_knn == 2, 1:25]
+```
+
+We used the training and test data set to create and test model.
+
+```{r NB}
+## Train the model
+ckd_nb_model_train <- naiveBayes(x = subset(ckd_nb_train, select=-class), y = ckd_nb_train$class)
+
+## Test the model
+ckd_nb_model_test <- predict(object = ckd_nb_model_train, newdata = ckd_nb_test, type = "class")
+```
+
+Using the CrossTable() method, We have created a Confusion Matrix for our model.
+
+```{r NBConfusionMatrix}
+## Draw Confusion Matrix
+CrossTable(ckd_nb_test$class, ckd_nb_model_test, prop.chisq = FALSE)
+## Actual Values - ckd_nb_test$class
+## Predicted Values - ckd_nb_model_test
+```
+
+## 3.3 K-Means Clustering
+K-Means Clustering is a method of vector quantization, originally from signal processing, that is popular for cluster analysis in data mining. K-Means clustering aims to partition n observations into k clusters in which each observation belongs to the cluster with the nearest mean, serving as a prototype of the cluster. This results in a partitioning of the data space into Voronoi cells.
+
+### 3.3.1 Algorithm
+Given a set of observations (x~1~,x~2~, .,x~n~), where each observation is a d-dimensional real vector, k-means clustering aims to partition the n observations into k (<= n) sets S = {S~1~, S~2~, ., S~k~} so as to minimize the within-cluster sum of squares (sum of distance functions of each point in the cluster to the K center). In other words, its objective is to find:
+
+![](figures\\km1.png)
+
+### 3.3.2 Pros
+K-Means Clustering algorithm is faster, because order of time complexity is linear with the number of data and it Works great if clusters are spherical.
+
+### 3.3.3 Cons
+Three key features of K-Means which make it efficient are often regarded as its biggest drawbacks.
+
+Euclidean distance is used as a metric and variance is used as a measure of cluster scatter.
+
+The number of clusters k is an input parameter: an inappropriate choice of k may yield poor results. That is why, when performing K-Means, it is important to run diagnostic checks for determining the number of clusters in the data set.
+
+Convergence to a local minimum may produce counter-intuitive ("wrong") results.
+
+Another key limitation of K-Means is its cluster model. The concept is based on spherical clusters that are separable in a way so that the mean value converges towards the cluster center.
+
+### 3.3.4 Case Study
+In this section we have applied K-Means Clustering Algorithm on the completed set of Chronic Kidney Disease data that we obtained after imputing missing values.
+
+```{r KMCaseStudy}
+## Create a new data frame
+ckd_km <- ckd_cleansed_num
+
+## Install the package
+#install.packages("stats")
+
+## Call the package
+library(stats)
+
+## Set Pseudo Random Number Generator
+set.seed(1234)
+
+## Predict the results
+ckd_km_pred <- kmeans(x = subset(ckd_km, select = -class), centers = 2)
+
+## Draw table
+table(ckd_km$class, ckd_km_pred$cluster)
+```
+
+We have built the model but we also need to check the accuracy of the predicted values.
+
+```{r KMConfusionMatrix}
+## Install the package
+#install.packages("gmodels")
+
+## Call the package
+library(gmodels)
+
+## Draw Confusion Matrix
+CrossTable(ckd_km$class, ckd_km_pred$cluster, prop.chisq = FALSE)
+## Actual Values - ckd_km$class
+## Predicted Values - ckd_km_pred$cluster
+```
+
+# 4. Report
+We compared the Confusion Matrix for all three algorithms and observed the following:
+
+![](figures\\table.png)
+
+Based on the above mentioned table, we conclude that Naive Bayes Classifer detects Chronic Kidney Disease with more accuracy and reduces False Negatives.
